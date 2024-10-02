@@ -5,7 +5,7 @@ storage:
   user: "user_wiki_rocketfirm"
   password: "password"
   database: "db_wiki_rocketfirm"
-  migration: "./migrations/dump_wiki_011024.sql"
+  migration: ""
 http:
   host: "127.0.0.1"
   port: 80
