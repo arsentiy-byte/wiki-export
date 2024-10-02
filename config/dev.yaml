@@ -1,0 +1,12 @@
+env: "dev"
+storage:
+  host: "database"
+  port: 3306
+  user: "user_wiki_rocketfirm"
+  password: "password"
+  database: "db_wiki_rocketfirm"
+  migration: "./migrations/dump_wiki_011024.sql"
+http:
+  host: "127.0.0.1"
+  port: 80
+  timeout: 5s
