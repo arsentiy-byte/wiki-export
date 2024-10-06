@@ -6,7 +6,12 @@ storage:
   password: "password"
   database: "db_wiki_rocketfirm"
   migration: ""
-http:
-  host: "127.0.0.1"
-  port: 80
-  timeout: 5s
+clients:
+  http:
+    wiki:
+      host: "https://wiki.rocketfirm.com"
+      timeout: 5s
+      token_id: ""
+      token_secret: ""
+      paths:
+        pages_export_markdown: "/api/pages/export/%d/markdown"

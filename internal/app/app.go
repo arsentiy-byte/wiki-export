@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"wiki-export/internal/config"
 )
@@ -24,7 +23,10 @@ func New(ctx context.Context) (*App, error) {
 }
 
 func (a *App) Run() error {
-	fmt.Println(a.provider.Database())
+	err := a.provider.ExportService().ExportPagesToMarkdown(context.Background())
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

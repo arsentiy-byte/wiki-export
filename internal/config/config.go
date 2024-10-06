@@ -10,7 +10,7 @@ import (
 type Config struct {
 	Env     string   `yaml:"env" env-default:"local"`
 	Storage *Storage `yaml:"storage" env-required:"true"`
-	Http    *Http    `yaml:"http" env-required:"true"`
+	Clients *Clients `yaml:"clients" env-required:"true"`
 }
 
 func Load() (*Config, error) {

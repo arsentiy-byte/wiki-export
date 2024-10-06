@@ -1,3 +1,4 @@
 .idea
 config/local.yaml
 migrations/*.sql
+docker/database/*
