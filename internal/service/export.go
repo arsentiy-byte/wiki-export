@@ -8,7 +8,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
+	"regexp"
+	"time"
 	"wiki-export/internal/client/http"
 	"wiki-export/internal/config/clients"
 	"wiki-export/internal/repository"
@@ -33,15 +34,11 @@ func NewExportService(repository repository.PageRepository, cfg *clients.Wiki) E
 func (s *exportService) ExportPagesToMarkdown(ctx context.Context) error {
 	dir := "./tmp/markdown"
 
-	if _, err := os.Stat(dir); !os.IsNotExist(err) {
-		if err := os.RemoveAll(dir); err != nil {
-			return fmt.Errorf("failed to remove existing directory: %w", err)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			return fmt.Errorf("failed to create tmp directory: %w", err)
 		}
-	}
-
-	err := os.MkdirAll(dir, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("failed to create tmp directory: %w", err)
 	}
 
 	pages, err := s.repository.GetPagesToExport(ctx)
@@ -49,14 +46,11 @@ func (s *exportService) ExportPagesToMarkdown(ctx context.Context) error {
 		return err
 	}
 
-	chunkSize := 100
+	chunkSize := 60
 	chunks := len(pages) / chunkSize
 	if len(pages)%chunkSize != 0 {
 		chunks++
 	}
-
-	var wg sync.WaitGroup
-	wg.Add(chunks)
 
 	for i := 0; i < chunks; i++ {
 		start := i * chunkSize
@@ -65,17 +59,14 @@ func (s *exportService) ExportPagesToMarkdown(ctx context.Context) error {
 			end = len(pages)
 		}
 
-		go func(start, end int) {
-			defer wg.Done()
-			for _, page := range pages[start:end] {
-				if err := s.exportPageToMarkdown(ctx, page); err != nil {
-					log.Printf("Ignoring error while exporting page: %s\n", err)
-				}
+		for _, page := range pages[start:end] {
+			if err := s.exportPageToMarkdown(ctx, page); err != nil {
+				log.Printf("Ignoring error while exporting page: %s\n", err)
 			}
-		}(start, end)
-	}
+		}
 
-	wg.Wait()
+		time.Sleep(1 * time.Minute)
+	}
 
 	f, err := os.OpenFile("./tmp/markdown.zip", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
@@ -122,12 +113,21 @@ func (s *exportService) ExportPagesToMarkdown(ctx context.Context) error {
 }
 
 func (s *exportService) exportPageToMarkdown(ctx context.Context, page repository.PageToExport) error {
+	fileName := fmt.Sprintf("./tmp/markdown/%s.md", page.Slug)
+
+	if _, err := os.Stat(fileName); err == nil || !os.IsNotExist(err) {
+		return nil
+	}
+
 	content, err := s.wikiHttpClient.PagesExportMarkdown(ctx, page.Id)
 	if err != nil {
 		return err
 	}
 
 	markdown := string(content)
+
+	re := regexp.MustCompile(`<[^>]*>`)
+	markdown = re.ReplaceAllString(markdown, "")
 
 	breadcrumbs := fmt.Sprintf("Книги > %s", page.BookName)
 
@@ -138,7 +138,6 @@ func (s *exportService) exportPageToMarkdown(ctx context.Context, page repositor
 	}
 
 	newMarkdown := fmt.Sprintf("# %s\n\n%s", breadcrumbs, markdown)
-	fileName := fmt.Sprintf("./tmp/markdown/%s.md", page.Slug)
 
 	err = os.WriteFile(fileName, []byte(newMarkdown), 0644)
 	if err != nil {

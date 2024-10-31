@@ -23,13 +23,11 @@ services:
     working_dir: /app
     volumes:
       - ./:/app
-    command: go run ./cmd/app/main.go
     environment:
       CONFIG_PATH: ./config/dev.yaml
-    ports:
-      - "${APP_PORT}:80"
     networks:
       - app_network
+    command: ["tail", "-f", "/dev/null"]
 
 volumes:
   db_data:

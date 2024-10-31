@@ -2,3 +2,5 @@
 config/local.yaml
 migrations/*.sql
 docker/database/*
+tmp/markdown/*
+.env

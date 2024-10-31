@@ -18,7 +18,7 @@ type wikiClient struct {
 func NewWikiHttpClient(cfg *clients.Wiki) WikiHttpClient {
 	client := NewClient(cfg.Host, cfg.Port, cfg.Timeout)
 
-	client.GetClient().SetAuthToken(fmt.Sprintf("Token %s:%s", cfg.TokenId, cfg.TokenSecret))
+	client.GetClient().SetHeader("Authorization", fmt.Sprintf("Token %s:%s", cfg.TokenId, cfg.TokenSecret))
 
 	return &wikiClient{
 		http: client,
