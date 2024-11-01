@@ -129,6 +129,9 @@ func (s *exportService) exportPageToMarkdown(ctx context.Context, page repositor
 	re := regexp.MustCompile(`<[^>]*>`)
 	markdown = re.ReplaceAllString(markdown, "")
 
+	imageRe := regexp.MustCompile(`data:image\/[bmp,gif,ico,jpg,png,svg,webp,x\-icon,svg+xml]+;base64,[a-zA-Z0-9,+,/]+={0,2}`)
+	markdown = imageRe.ReplaceAllString(markdown, "")
+
 	breadcrumbs := fmt.Sprintf("Книги > %s", page.BookName)
 
 	if page.ChapterName == "" {
