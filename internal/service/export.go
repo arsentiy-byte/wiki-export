@@ -113,12 +113,6 @@ func (s *exportService) ExportPagesToMarkdown(ctx context.Context) error {
 }
 
 func (s *exportService) exportPageToMarkdown(ctx context.Context, page repository.PageToExport) error {
-	fileName := fmt.Sprintf("./tmp/markdown/%s.md", page.Slug)
-
-	if _, err := os.Stat(fileName); err == nil || !os.IsNotExist(err) {
-		return nil
-	}
-
 	content, err := s.wikiHttpClient.PagesExportMarkdown(ctx, page.Id)
 	if err != nil {
 		return err
@@ -141,6 +135,7 @@ func (s *exportService) exportPageToMarkdown(ctx context.Context, page repositor
 	}
 
 	newMarkdown := fmt.Sprintf("# %s\n\n%s", breadcrumbs, markdown)
+	fileName := fmt.Sprintf("./tmp/markdown/%s.md", page.Slug)
 
 	err = os.WriteFile(fileName, []byte(newMarkdown), 0644)
 	if err != nil {
